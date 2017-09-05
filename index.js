@@ -9,32 +9,65 @@ const io = socketIo(server);
 // Serve files from dir public
 app.use(express.static('public'));
 
-var allClients = [];
+const mapWidth = 512;
+const mapHeight = 336;
+const activeCrystals = new Map();
+const socketMap = new Map();
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+function randomNumber(max) {
+  return Math.floor(Math.random() * max) + 1;
+}
+
+function createCrystal() {
+  console.log(activeCrystals.size);
+  const crystal = { x: randomNumber(mapWidth - 32) + 16, y: randomNumber(mapHeight - 32) + 16, id: uuidv4(), grabbed: false };
+  activeCrystals.set(crystal.id, crystal);
+  io.sockets.emit('newCrystal', crystal);
+}
 
 io.on('connection', (socket) => {
-
-  allClients.push(socket);
-
-  socket.on('disconnect', function() {
-     var i = allClients.indexOf(socket);
-     allClients.splice(i, 1);
-     socket.broadcast.emit('playerLeft', socket.player);
+  socket.on('disconnect', () => {
+    socket.broadcast.emit('playerLeft', socketMap.get(socket));
+    socketMap.delete(socket);
   });
 
   socket.on('newPlayer', (data) => {
-    allClients.forEach((client) => {
-      if (client.player) {
-        socket.emit('playerJoined', client.player);
+    socketMap.forEach((client) => {
+      socket.emit('playerJoined', client);
+    });
+    activeCrystals.forEach((crystal) => {
+      if (!crystal.grabbed) {
+        socket.emit('newCrystal', crystal);
       }
     });
-    socket.player = data;
+    socketMap.set(socket, data);
     socket.broadcast.emit('playerJoined', data);
   });
 
   socket.on('playerMoved', (data) => {
-    socket.player = data;
+    socketMap.set(socket, data);
     socket.broadcast.emit('opponentMoved', data);
+  });
+
+  socket.on('playerStoped', (data) => {
+    socketMap.set(socket, data);
+    socket.broadcast.emit('opponentStoped', data);
+  });
+
+  socket.on('crystalGrabbed', (data) => {
+    if (!activeCrystals.get(data.crystalId).grabbed) {
+      activeCrystals.get(data.crystalId).grabbed = true;
+      socket.broadcast.emit('opponentGrabbedCrystal', data);
+      createCrystal();
+    }
   });
 });
 
+createCrystal();
 server.listen(8080);
