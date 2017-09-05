@@ -1,6 +1,7 @@
 /* globals io Phaser */
 
-const socket = io.connect('http://localhost:8080');
+const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
+// const socket = io.connect('http://localhost:8080');
 // const socket = io.connect('http://172.26.32.232:8080');
 const game = new Phaser.Game(512, 336, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
