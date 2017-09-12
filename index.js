@@ -20,6 +20,7 @@ function uuidv4() {
     return v.toString(16);
   });
 }
+
 function randomNumber(max) {
   return Math.floor(Math.random() * max) + 1;
 }

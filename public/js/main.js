@@ -36,8 +36,8 @@ function create() {
   game.world.setBounds(0, 0, mapWidth, mapHeight);
   game.background = this.game.add.sprite(0, 0, 'grass-background');
   game.stage.disableVisibilityChange = true;
-  const startX = game.world.randomX;
-  const startY = game.world.randomY;
+  const startX = crystalChase.utils.randomNumber(mapWidth);
+  const startY = crystalChase.utils.randomNumber(mapHeight);
   player = createPlayer(startX, startY, undefined);
   cursors = game.input.keyboard.createCursorKeys();
   spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -191,7 +191,7 @@ function createPlayer(x, y, id) {
   if (id) {
     newPlayerSprite.playerId = id;
   } else {
-    newPlayerSprite.playerId = uuidv4();
+    newPlayerSprite.playerId = crystalChase.utils.uuidv4();
     socket.emit('newPlayer', { x, y, id: newPlayerSprite.playerId });
   }
   newPlayerSprite.scale.setTo(0.7);
@@ -216,11 +216,4 @@ function botMove() {
     player.y += 1;
   }
   socket.emit('playerMoved', { x: player.x, y: player.y, id: player.playerId });
-}
-
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
 }

@@ -4,6 +4,7 @@
     "browser": true
   },
   "globals": {
+    "crystalChase": true,
     "io": true,
     "Phaser": true
   },
