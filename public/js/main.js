@@ -1,7 +1,5 @@
-/* globals io Phaser */
-
-const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
-// const socket = io.connect('http://localhost:8080');
+// const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
+const socket = io.connect('http://localhost:8080');
 // const socket = io.connect('http://172.26.32.232:8080');
 const game = new Phaser.Game(512, 336, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
@@ -31,7 +29,6 @@ function preload() {
   game.load.spritesheet('link-walk-back', 'assets/img/char/link-walk-back.png', 48, 48, 8);
   game.load.spritesheet('link-walk-left', 'assets/img/char/link-walk-left.png', 48, 48, 8);
   game.load.spritesheet('link-walk-right', 'assets/img/char/link-walk-right.png', 48, 48, 8);
-  game.stage.backgroundColor = '#007236';
 }
 
 function create() {
@@ -112,7 +109,9 @@ function update() {
     }
   }
   if (botActive) {
-    botMove();
+    for (let i = 0; i < 3; i += 1) {
+      botMove();
+    }
   }
 }
 
@@ -188,35 +187,33 @@ socket.on('opponentGrabbedCrystal', (data) => {
 });
 
 function createPlayer(x, y, id) {
-  const newPlayer = game.add.sprite(x, y, 'link-idle-front');
+  const newPlayerSprite = game.add.sprite(x, y, 'link-idle-front');
   if (id) {
-    newPlayer.playerId = id;
+    newPlayerSprite.playerId = id;
   } else {
-    newPlayer.playerId = uuidv4();
-    socket.emit('newPlayer', { x, y, id: newPlayer.playerId });
+    newPlayerSprite.playerId = uuidv4();
+    socket.emit('newPlayer', { x, y, id: newPlayerSprite.playerId });
   }
-  newPlayer.scale.setTo(0.7);
-  newPlayer.anchor.set(0.5);
-  newPlayer.smoothed = false;
-  newPlayer.animations.add('walk');
-  newPlayer.animations.add('idle');
-  game.physics.enable(newPlayer, Phaser.Physics.ARCADE);
-  // newPlayer.onAnimationStart.add(() => {
-  //   console.log(newPlayer);
-  // }, this);
-  return newPlayer;
+  newPlayerSprite.scale.setTo(0.7);
+  newPlayerSprite.anchor.set(0.5);
+  newPlayerSprite.smoothed = false;
+  newPlayerSprite.animations.add('walk');
+  newPlayerSprite.animations.add('idle');
+  game.physics.enable(newPlayerSprite, Phaser.Physics.ARCADE);
+
+  return newPlayerSprite;
 }
 
 function botMove() {
   if (player.x > crystal.x) {
-    player.x -= defaultSpeed;
+    player.x -= 1;
   } else if (player.x < crystal.x) {
-    player.x += defaultSpeed;
+    player.x += 1;
   }
   if (player.y > crystal.y) {
-    player.y -= defaultSpeed;
+    player.y -= 1;
   } else if (player.y < crystal.y) {
-    player.y += defaultSpeed;
+    player.y += 1;
   }
   socket.emit('playerMoved', { x: player.x, y: player.y, id: player.playerId });
 }
