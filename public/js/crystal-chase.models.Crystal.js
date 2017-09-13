@@ -1,9 +1,11 @@
 /* globals crystalChase */
 // eslint-disable-next-line no-unused-vars
 crystalChase.models.Crystal = class {
-  constructor(x, y, id) {
-    this.x = x;
-    this.y = y;
+  constructor(game, sprite, id) {
+    this.sprite = sprite;
     this.id = id;
+    this.sprite.animations.add('spin');
+    this.sprite.animations.play('spin', 20, true);
+    game.physics.enable(this.sprite, Phaser.Physics.ARCADE);
   }
 };

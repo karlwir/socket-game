@@ -38,7 +38,7 @@ function create() {
   spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
   game.physics.startSystem(Phaser.Physics.ARCADE);
   game.world.setBounds(0, 0, mapWidth, mapHeight);
-  game.background = this.game.add.sprite(0, 0, 'grass-background');
+  game.background = this.game.add.sprite(0, 0, 'dungeon-background');
   game.stage.disableVisibilityChange = true;
   const startX = crystalChase.utils.randomNumber(mapWidth);
   const startY = crystalChase.utils.randomNumber(mapHeight);
@@ -49,7 +49,9 @@ function create() {
 }
 
 function update() {
-  game.physics.arcade.collide(player.sprite, crystal, grabGem, null, this);
+  if (crystal) {
+    game.physics.arcade.collide(player.sprite, crystal.sprite, grabGem, null, this);
+  }
   player.stopMoving();
   if (cursors.left.isDown) {
     player.moveLeft();
@@ -89,10 +91,10 @@ function update() {
   }
 }
 
-function grabGem(collidePlayer, collideCrystal) {
+function grabGem() {
   score += 1;
-  socket.emit('crystalGrabbed', { playerId: collidePlayer.playerId, crystalId: collideCrystal.crystalId });
-  collideCrystal.destroy();
+  socket.emit('crystalGrabbed', { playerId: player.id, crystalId: crystal.id });
+  crystal.sprite.destroy();
 }
 
 function render() {
@@ -156,16 +158,13 @@ socket.on('playerLeft', (data) => {
 });
 
 socket.on('newCrystal', (data) => {
-  crystal = game.add.sprite(data.x, data.y, 'gem-green-spin');
-  crystal.crystalId = data.id;
-  crystal.animations.add('spin');
-  crystal.animations.play('spin', 20, true);
-  game.physics.enable(crystal, Phaser.Physics.ARCADE);
+  const newCrystalSprite = game.add.sprite(data.x, data.y, 'gem-green-spin');
+  crystal = new crystalChase.models.Crystal(game, newCrystalSprite, data.id);
 });
 
 socket.on('opponentGrabbedCrystal', () => {
   if (crystal) {
-    crystal.destroy();
+    crystal.sprite.destroy();
   }
 });
 
