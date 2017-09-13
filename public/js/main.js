@@ -1,5 +1,5 @@
-// const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
-const socket = io.connect('http://localhost:8080');
+const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
+// const socket = io.connect('http://localhost:8080');
 // const socket = io.connect('http://172.26.32.232:8080');
 const game = new Phaser.Game(512, 336, Phaser.AUTO, 'crystal-chase', { preload: preload, create: create, update: update, render: render });
 
@@ -16,6 +16,17 @@ const mapWidth = 512;
 const mapHeight = 336;
 const mapPadding = 15;
 const scoreSpan = document.getElementById('score');
+
+function grabGem() {
+  socket.emit('crystalGrabbed', { playerId: player.id, crystalId: crystal.id });
+  crystal.sprite.destroy();
+}
+
+function createPlayer(x, y, id) {
+  const newPlayerSprite = game.add.sprite(x, y, 'link-idle-front');
+  const newPlayer = new crystalChase.models.Player(game, newPlayerSprite, id);
+  return newPlayer;
+}
 
 function preload() {
   game.load.image('dungeon-background', 'assets/img/bg/dungeon.png');
@@ -72,11 +83,6 @@ function update() {
       socket.emit('playerStoped', { x: player.getX(), y: player.getY(), id: player.id });
     }
   }
-}
-
-function grabGem() {
-  socket.emit('crystalGrabbed', { playerId: player.id, crystalId: crystal.id });
-  crystal.sprite.destroy();
 }
 
 function render() {
@@ -179,9 +185,3 @@ socket.on('opponentGrabbedCrystal', () => {
     crystal.sprite.destroy();
   }
 });
-
-function createPlayer(x, y, id) {
-  const newPlayerSprite = game.add.sprite(x, y, 'link-idle-front');
-  const newPlayer = new crystalChase.models.Player(game, newPlayerSprite, id);
-  return newPlayer;
-}
