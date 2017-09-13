@@ -56,6 +56,11 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('opponentMoved', data);
   });
 
+  socket.on('playerBeamed', (data) => {
+    socketMap.set(socket, data);
+    socket.broadcast.emit('opponentBeamed', data);
+  });
+
   socket.on('playerStoped', (data) => {
     socketMap.set(socket, data);
     socket.broadcast.emit('opponentStoped', data);

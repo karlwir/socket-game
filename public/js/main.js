@@ -9,13 +9,15 @@ let cursors;
 let spaceKey;
 let botActive = false;
 let score = 0;
+
+const defaultSpeed = 200;
+const defaultAcc = 3000;
+const defaultDrag = 800;
+
 const opponents = [];
 const mapWidth = 512;
 const mapHeight = 336;
 const mapPadding = 15;
-const defaultSpeed = 200;
-const defaultAcc = 3000;
-const defaultDrag = 800;
 const scoreSpan = document.getElementById('score');
 
 function preload() {
@@ -32,72 +34,44 @@ function preload() {
 }
 
 function create() {
+  cursors = game.input.keyboard.createCursorKeys();
+  spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
   game.physics.startSystem(Phaser.Physics.ARCADE);
   game.world.setBounds(0, 0, mapWidth, mapHeight);
   game.background = this.game.add.sprite(0, 0, 'grass-background');
   game.stage.disableVisibilityChange = true;
   const startX = crystalChase.utils.randomNumber(mapWidth);
   const startY = crystalChase.utils.randomNumber(mapHeight);
-  player = createPlayer(startX, startY, undefined);
-  cursors = game.input.keyboard.createCursorKeys();
-  spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
-  player.body.maxVelocity.x = defaultSpeed;
-  player.body.maxVelocity.y = defaultSpeed;
-  player.body.drag.x = defaultDrag;
-  player.body.drag.y = defaultDrag;
+  const startId = crystalChase.utils.uuidv4();
+  player = createPlayer(startX, startY, startId);
+  player.animationIdle();
+  socket.emit('newPlayer', { x: startX, y: startY, id: startId });
 }
 
 function update() {
-  game.physics.arcade.collide(player, crystal, grabGem, null, this);
-  player.body.acceleration.x = 0;
-  player.body.acceleration.y = 0;
+  game.physics.arcade.collide(player.sprite, crystal, grabGem, null, this);
+  player.stopMoving();
   if (cursors.left.isDown) {
-    player.body.acceleration.x -= defaultAcc;
-    if (player.key !== 'link-walk-left') {
-      player.loadTexture('link-walk-left', 0);
-    }
+    player.moveLeft();
   } else if (cursors.right.isDown) {
-    player.body.acceleration.x += defaultAcc;
-    if (player.key !== 'link-walk-right') {
-      player.loadTexture('link-walk-right', 0);
-    }
+    player.moveRight();
   }
   if (cursors.up.isDown) {
-    player.body.acceleration.y -= defaultAcc;
-    if (player.key !== 'link-walk-back') {
-      if (!cursors.left.isDown && !cursors.right.isDown) {
-        player.loadTexture('link-walk-back', 0);
-      }
-    }
+    player.moveUp();
   } else if (cursors.down.isDown) {
-    player.body.acceleration.y += defaultAcc;
-    if (player.key !== 'link-walk-front') {
-      if (!cursors.left.isDown && !cursors.right.isDown) {
-        player.loadTexture('link-walk-front', 0);
-      }
-    }
+    player.moveDown();
   }
-  if (player.body.speed > 0) {
-    player.animations.play('walk', 20, true);
-    if (player.y < -mapPadding) {
-      player.y = mapHeight + mapPadding;
+  if (player.getSpeed() > 0) {
+    player.animationWalk();
+    if (player.handleOutOfBounds()) {
+      socket.emit('playerBeamed', { x: player.getX(), y: player.getY(), id: player.id });
+    } else {
+      socket.emit('playerMoved', { x: player.getX(), y: player.getY(), id: player.id });
     }
-    if (player.y > mapHeight + mapPadding) {
-      player.y = -mapPadding;
-    }
-    if (player.x < -mapPadding) {
-      player.x = mapWidth + mapPadding;
-    }
-    if (player.x > mapWidth + mapPadding) {
-      player.x = -mapPadding;
-    }
-    socket.emit('playerMoved', { x: player.x, y: player.y, id: player.playerId });
-  } else if (player.body.speed === 0) {
-    player.animations.play('idle', 2, true);
-    if (player.key !== 'link-idle-front') {
-      socket.emit('playerStoped', { x: player.x, y: player.y, id: player.playerId });
-      player.loadTexture('link-idle-front', 0);
+  } else if (player.getSpeed() === 0) {
+    if (player.sprite.key !== 'link-idle-front') {
+      player.animationIdle();
+      socket.emit('playerStoped', { x: player.getX(), y: player.getY(), id: player.id });
     }
   }
 
@@ -117,8 +91,6 @@ function update() {
 
 function grabGem(collidePlayer, collideCrystal) {
   score += 1;
-  // scoreSpan.innerText = score;
-  console.log(score);
   socket.emit('crystalGrabbed', { playerId: collidePlayer.playerId, crystalId: collideCrystal.crystalId });
   collideCrystal.destroy();
 }
@@ -128,48 +100,59 @@ function render() {
 }
 
 socket.on('playerJoined', (data) => {
+  console.log(data);
   const newOpponent = createPlayer(data.x, data.y, data.id);
   opponents[data.id] = newOpponent;
+  newOpponent.animationIdle();
 });
 
 socket.on('opponentMoved', (data) => {
   if (opponents[data.id]) {
     const opponent = opponents[data.id];
-    opponent.animations.play('walk', 20, true);
-    if (opponents[data.id].y > data.y && opponent.key !== 'link-walk-back') {
-      if (opponents[data.id].x === data.x) {
-        opponent.loadTexture('link-walk-back', 0);
-      }
+    let ang = game.physics.arcade.angleToXY(opponent.sprite, data.x, data.y) * (180 / Math.PI);
+
+    if (ang < 0) {
+      ang = Math.abs(ang) + 180;
     }
-    if (opponents[data.id].y < data.y && opponent.key !== 'link-walk-front') {
-      if (opponents[data.id].x === data.x) {
-        opponent.loadTexture('link-walk-front', 0);
-      }
+
+    if (ang >= 225 && ang <= 315) {
+      opponent.animationWalkUp();
+    } else if (ang >= 45 && ang <= 135) {
+      opponent.animationWalkDown();
+    } else if (ang > 135 && ang < 225) {
+      opponent.animationWalkLeft();
+    } else if (ang < 45 || ang > 315) {
+      opponent.animationWalkRight();
     }
-    if (opponents[data.id].x > data.x && opponent.key !== 'link-walk-left') {
-      opponent.loadTexture('link-walk-left', 0);
-    }
-    if (opponents[data.id].x < data.x && opponent.key !== 'link-walk-right') {
-      opponent.loadTexture('link-walk-right', 0);
-    }
-    opponents[data.id].x = data.x;
-    opponents[data.id].y = data.y;
+    game.physics.arcade.moveToXY(opponent.sprite, data.x, data.y, 60, game.time.elapsedMS);
+    setTimeout(() => {
+      opponent.setX(data.x);
+      opponent.setY(data.y);
+    }, game.time.elapsedMS);
   }
 });
+
+socket.on('opponentBeamed', (data) => {
+  if (opponents[data.id]) {
+    const opponent = opponents[data.id];
+    opponent.setX(data.x);
+    opponent.setY(data.y);
+  }
+});
+
 socket.on('opponentStoped', (data) => {
   if (opponents[data.id]) {
     const opponent = opponents[data.id];
-    if (opponent.key !== 'link-idle-front') {
-      opponent.loadTexture('link-idle-front', 0);
-    }
-    opponent.animations.play('idle', 2, true);
+    opponent.animationIdle();
   }
 });
 
 socket.on('playerLeft', (data) => {
-  const opponent = opponents[data.id];
-  opponents.splice(data.id, 1);
-  opponent.destroy();
+  if (opponents[data.id]) {
+    const opponent = opponents[data.id];
+    opponents.splice(data.id, 1);
+    opponent.sprite.destroy();
+  }
 });
 
 socket.on('newCrystal', (data) => {
@@ -180,7 +163,7 @@ socket.on('newCrystal', (data) => {
   game.physics.enable(crystal, Phaser.Physics.ARCADE);
 });
 
-socket.on('opponentGrabbedCrystal', (data) => {
+socket.on('opponentGrabbedCrystal', () => {
   if (crystal) {
     crystal.destroy();
   }
@@ -188,32 +171,6 @@ socket.on('opponentGrabbedCrystal', (data) => {
 
 function createPlayer(x, y, id) {
   const newPlayerSprite = game.add.sprite(x, y, 'link-idle-front');
-  if (id) {
-    newPlayerSprite.playerId = id;
-  } else {
-    newPlayerSprite.playerId = crystalChase.utils.uuidv4();
-    socket.emit('newPlayer', { x, y, id: newPlayerSprite.playerId });
-  }
-  newPlayerSprite.scale.setTo(0.7);
-  newPlayerSprite.anchor.set(0.5);
-  newPlayerSprite.smoothed = false;
-  newPlayerSprite.animations.add('walk');
-  newPlayerSprite.animations.add('idle');
-  game.physics.enable(newPlayerSprite, Phaser.Physics.ARCADE);
-
-  return newPlayerSprite;
-}
-
-function botMove() {
-  if (player.x > crystal.x) {
-    player.x -= 1;
-  } else if (player.x < crystal.x) {
-    player.x += 1;
-  }
-  if (player.y > crystal.y) {
-    player.y -= 1;
-  } else if (player.y < crystal.y) {
-    player.y += 1;
-  }
-  socket.emit('playerMoved', { x: player.x, y: player.y, id: player.playerId });
+  const newPlayer = new crystalChase.models.Player(game, newPlayerSprite, id);
+  return newPlayer;
 }
