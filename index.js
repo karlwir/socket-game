@@ -11,7 +11,8 @@ app.use(express.static('public'));
 
 const mapWidth = 512;
 const mapHeight = 336;
-const activeCrystals = new Map();
+const crystals = new Map();
+const scores = new Map();
 const socketMap = new Map();
 
 function uuidv4() {
@@ -26,28 +27,39 @@ function randomNumber(max) {
 }
 
 function createCrystal() {
-  console.log(activeCrystals.size);
   const crystal = { x: randomNumber(mapWidth - 32) + 16, y: randomNumber(mapHeight - 32) + 16, id: uuidv4(), grabbed: false };
-  activeCrystals.set(crystal.id, crystal);
+  crystals.set(crystal.id, crystal);
   io.sockets.emit('newCrystal', crystal);
+}
+
+function getScores() {
+  const scoresArray = [];
+  scores.forEach((value, key) => scoresArray.push({ key, value }));
+  scoresArray.sort((a, b) => b.value - a.value);
+  return scoresArray;
 }
 
 io.on('connection', (socket) => {
   socket.on('disconnect', () => {
-    socket.broadcast.emit('playerLeft', socketMap.get(socket));
-    socketMap.delete(socket);
+    if (socketMap.get(socket)) {
+      socket.broadcast.emit('playerLeft', socketMap.get(socket));
+      scores.delete(socketMap.get(socket).id);
+      socketMap.delete(socket);
+    }
   });
 
   socket.on('newPlayer', (data) => {
     socketMap.forEach((client) => {
       socket.emit('playerJoined', client);
     });
-    activeCrystals.forEach((crystal) => {
+    crystals.forEach((crystal) => {
       if (!crystal.grabbed) {
         socket.emit('newCrystal', crystal);
       }
     });
     socketMap.set(socket, data);
+    scores.set(data.id, 0);
+    io.sockets.emit('newScores', getScores());
     socket.broadcast.emit('playerJoined', data);
   });
 
@@ -67,9 +79,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('crystalGrabbed', (data) => {
-    if (!activeCrystals.get(data.crystalId).grabbed) {
-      activeCrystals.get(data.crystalId).grabbed = true;
+    if (!crystals.get(data.crystalId).grabbed) {
+      crystals.get(data.crystalId).grabbed = true;
       socket.broadcast.emit('opponentGrabbedCrystal', data);
+      const score = scores.get(data.playerId);
+      scores.set(data.playerId, score + 1);
+
+      io.sockets.emit('newScores', getScores());
       createCrystal();
     }
   });

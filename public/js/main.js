@@ -1,14 +1,11 @@
 // const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
 const socket = io.connect('http://localhost:8080');
 // const socket = io.connect('http://172.26.32.232:8080');
-const game = new Phaser.Game(512, 336, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+const game = new Phaser.Game(512, 336, Phaser.AUTO, 'crystal-chase', { preload: preload, create: create, update: update, render: render });
 
 let player;
 let crystal;
 let cursors;
-let spaceKey;
-let botActive = false;
-let score = 0;
 
 const defaultSpeed = 200;
 const defaultAcc = 3000;
@@ -35,7 +32,6 @@ function preload() {
 
 function create() {
   cursors = game.input.keyboard.createCursorKeys();
-  spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
   game.physics.startSystem(Phaser.Physics.ARCADE);
   game.world.setBounds(0, 0, mapWidth, mapHeight);
   game.background = this.game.add.sprite(0, 0, 'dungeon-background');
@@ -76,23 +72,9 @@ function update() {
       socket.emit('playerStoped', { x: player.getX(), y: player.getY(), id: player.id });
     }
   }
-
-  if (spaceKey.isDown) {
-    if (botActive) {
-      botActive = false;
-    } else {
-      botActive = true;
-    }
-  }
-  if (botActive) {
-    for (let i = 0; i < 3; i += 1) {
-      botMove();
-    }
-  }
 }
 
 function grabGem() {
-  score += 1;
   socket.emit('crystalGrabbed', { playerId: player.id, crystalId: crystal.id });
   crystal.sprite.destroy();
 }
@@ -102,7 +84,6 @@ function render() {
 }
 
 socket.on('playerJoined', (data) => {
-  console.log(data);
   const newOpponent = createPlayer(data.x, data.y, data.id);
   opponents[data.id] = newOpponent;
   newOpponent.animationIdle();
@@ -116,7 +97,6 @@ socket.on('opponentMoved', (data) => {
     if (ang < 0) {
       ang = Math.abs(ang) + 180;
     }
-
     if (ang >= 225 && ang <= 315) {
       opponent.animationWalkUp();
     } else if (ang >= 45 && ang <= 135) {
@@ -160,6 +140,38 @@ socket.on('playerLeft', (data) => {
 socket.on('newCrystal', (data) => {
   const newCrystalSprite = game.add.sprite(data.x, data.y, 'gem-green-spin');
   crystal = new crystalChase.models.Crystal(game, newCrystalSprite, data.id);
+});
+
+socket.on('newScores', (data) => {
+  const scoreTable = document.querySelector('#scores');
+  while (scoreTable.firstChild) {
+    scoreTable.removeChild(scoreTable.firstChild);
+  }
+  let rank = 0;
+  let lastScore;
+  data.forEach((dataRow) => {
+    if (lastScore !== dataRow.value) {
+      rank += 1;
+    }
+    const tr = document.createElement('tr');
+    const thRank = document.createElement('th');
+    thRank.innerText = rank;
+    const tdName = document.createElement('td');
+    tdName.innerText = dataRow.key;
+    const tdScore = document.createElement('td');
+    tdScore.innerText = dataRow.value;
+    lastScore = dataRow.value;
+
+    if (dataRow.key === player.id) {
+      tr.classList.add('current-player');
+    }
+
+    tr.appendChild(thRank);
+    tr.appendChild(tdName);
+    tr.appendChild(tdScore);
+
+    scoreTable.appendChild(tr);
+  });
 });
 
 socket.on('opponentGrabbedCrystal', () => {

@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <title>Game</title>
-    <link rel="stylesheet" href="/css/reset.css">
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <script src="/js/phaser.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/crystal-chase.js"></script>
@@ -15,9 +15,24 @@
     <script src="/js/main.js"></script>
   </head>
   <body>
-    <div>
-      <span id="score">0</span>
+    <div id="crystal-chase"></div>
+    <div class="scores-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody id="scores">
+          <tr>
+            <th scope="row">1</th>
+            <td>Mark</td>
+            <td>10</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
   </body>
 </html>

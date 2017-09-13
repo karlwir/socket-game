@@ -1,4 +1,7 @@
 body {
-  background-color: #ccc;
-  color: #fff;
+
+}
+
+.table tr.current-player {
+  background-color: #f3f3f3;
 }
