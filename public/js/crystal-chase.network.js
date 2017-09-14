@@ -15,6 +15,17 @@ crystalChase.network = {
     crystalChase.network.socket.on('opponentMoved', (data) => {
       const opponent = crystalChase.gameWrap.opponents[data.id];
       if (opponent) {
+        if (!opponent.soundSteps.isPlaying) {
+          opponent.soundSteps.fadeIn(500);
+          opponent.soundSteps.loopFull();
+        } else {
+          const dist = crystalChase.gameWrap.game.physics.arcade
+            .distanceBetween(opponent.sprite, crystalChase.gameWrap.player.sprite);
+          const stepVolume = crystalChase.utils
+            .mapNumber(dist, 0, crystalChase.gameWrap.mapWidth, 1, 0.1);
+
+          opponent.soundSteps.fadeTo(50, stepVolume);
+        }
         let ang = crystalChase.gameWrap.game.physics.arcade
           .angleToXY(opponent.sprite, data.x, data.y) * (180 / Math.PI);
 
@@ -50,6 +61,7 @@ crystalChase.network = {
     crystalChase.network.socket.on('opponentStoped', (data) => {
       const opponent = crystalChase.gameWrap.opponents[data.id];
       if (opponent) {
+        opponent.soundSteps.fadeOut(300);
         opponent.animationIdle();
       }
     });

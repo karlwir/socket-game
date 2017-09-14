@@ -5,7 +5,7 @@ crystalChase.models.Player = class {
     this.id = id;
     this.inTheLead = false;
 
-    this.sprite.scale.setTo(0.7);
+    this.sprite.scale.setTo(0.75);
     this.sprite.anchor.set(0.5);
     this.sprite.smoothed = false;
     this.sprite.animations.add('walk');
@@ -15,6 +15,8 @@ crystalChase.models.Player = class {
     this.sprite.body.maxVelocity.y = crystalChase.gameWrap.defaultSpeed;
     this.sprite.body.drag.x = crystalChase.gameWrap.defaultDrag;
     this.sprite.body.drag.y = crystalChase.gameWrap.defaultDrag;
+
+    this.soundSteps = this.game.add.audio('sound-steps');
   }
 
   getX() { return this.sprite.x; }

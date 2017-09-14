@@ -24,7 +24,7 @@ crystalChase.scoreBoard = {
         tr.classList.add('current-player');
       }
 
-      if (!player.inTheLead && rank === 1 && dataRow.key === player.id) {
+      if (!player.inTheLead && rank === 1 && dataRow.key === player.id && dataRow.value !== 0) {
         crystalChase.gameWrap.soundTakenTheLead.play();
         player.inTheLead = true;
       } else if (rank === 2 && dataRow.key === player.id && player.inTheLead) {

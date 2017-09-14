@@ -7,6 +7,7 @@ crystalChase.gameWrap = {
 
   soundDing: undefined,
   soundChip: undefined,
+  soundSteps: undefined,
   soundTakenTheLead: undefined,
   soundLostTheLead: undefined,
   soundBackgroundTune: undefined,
@@ -53,6 +54,7 @@ crystalChase.gameWrap = {
 
     this.game.load.audio('sound-ding', 'assets/audio/ding.mp3');
     this.game.load.audio('sound-chip', 'assets/audio/chip.wav');
+    this.game.load.audio('sound-steps', 'assets/audio/steps-long.mp3');
     this.game.load.audio('sound-taken-the-lead', 'assets/audio/taken-the-lead.mp3');
     this.game.load.audio('sound-lost-the-lead', 'assets/audio/lost-the-lead.mp3');
     this.game.load.audio('sound-background-tune', 'assets/audio/background-tune.mp3');
@@ -73,6 +75,7 @@ crystalChase.gameWrap = {
 
     crystalChase.gameWrap.soundDing = this.game.add.audio('sound-ding');
     crystalChase.gameWrap.soundChip = this.game.add.audio('sound-chip');
+    crystalChase.gameWrap.soundSteps = this.game.add.audio('sound-steps');
     crystalChase.gameWrap.soundTakenTheLead = this.game.add.audio('sound-taken-the-lead');
     crystalChase.gameWrap.soundLostTheLead = this.game.add.audio('sound-lost-the-lead');
     crystalChase.gameWrap.soundBackgroundTune = this.game.add.audio('sound-background-tune');
@@ -100,6 +103,10 @@ crystalChase.gameWrap = {
       player.moveDown();
     }
     if (player.getSpeed() > 0) {
+      if (!player.soundSteps.isPlaying) {
+        player.soundSteps.fadeIn(500);
+        player.soundSteps.loopFull();
+      }
       player.animationWalk();
       if (player.handleOutOfBounds()) {
         crystalChase.network.playerBeamed({ x: player.getX(), y: player.getY(), id: player.id });
@@ -107,6 +114,7 @@ crystalChase.gameWrap = {
         crystalChase.network.playerMoved({ x: player.getX(), y: player.getY(), id: player.id });
       }
     } else if (player.getSpeed() === 0) {
+      player.soundSteps.fadeOut(300);
       if (player.sprite.key !== 'link-idle-front') {
         player.animationIdle();
         crystalChase.network.playerStoped({ x: player.getX(), y: player.getY(), id: player.id });
