@@ -1,11 +1,9 @@
-// const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
-const socket = io.connect('http://localhost:8080');
-// const socket = io.connect('http://172.26.32.232:8080');
 crystalChase.gameWrap = {
   game: {},
   player: {},
   crystal: {},
   cursors: {},
+  socket: {},
 
   soundDing: undefined,
   soundChip: undefined,
@@ -23,13 +21,15 @@ crystalChase.gameWrap = {
   mapPadding: 15,
 
   initGame: function initGame() {
+    crystalChase.network.connect();
     this.game = new Phaser.Game(512, 336, Phaser.AUTO, 'crystal-chase', { preload: this.preload, create: this.create, update: this.update, render: this.render });
   },
 
   grabGem: function grabGem() {
     crystalChase.gameWrap.soundDing.play();
     crystalChase.gameWrap.soundChip.play();
-    socket.emit('crystalGrabbed', { playerId: crystalChase.gameWrap.player.id, crystalId: crystalChase.gameWrap.crystal.id });
+    crystalChase.network.crystalGrabbed(
+      { playerId: crystalChase.gameWrap.player.id, crystalId: crystalChase.gameWrap.crystal.id });
     crystalChase.gameWrap.crystal.sprite.destroy();
   },
 
@@ -69,7 +69,7 @@ crystalChase.gameWrap = {
     const startId = crystalChase.utils.uuidv4();
     crystalChase.gameWrap.player = crystalChase.gameWrap.createPlayer(startX, startY, startId);
     crystalChase.gameWrap.player.animationIdle();
-    socket.emit('newPlayer', { x: startX, y: startY, id: startId });
+    crystalChase.network.newPlayer({ x: startX, y: startY, id: startId });
 
     crystalChase.gameWrap.soundDing = this.game.add.audio('sound-ding');
     crystalChase.gameWrap.soundChip = this.game.add.audio('sound-chip');
@@ -102,93 +102,21 @@ crystalChase.gameWrap = {
     if (player.getSpeed() > 0) {
       player.animationWalk();
       if (player.handleOutOfBounds()) {
-        socket.emit('playerBeamed', { x: player.getX(), y: player.getY(), id: player.id });
+        crystalChase.network.playerBeamed({ x: player.getX(), y: player.getY(), id: player.id });
       } else {
-        socket.emit('playerMoved', { x: player.getX(), y: player.getY(), id: player.id });
+        crystalChase.network.playerMoved({ x: player.getX(), y: player.getY(), id: player.id });
       }
     } else if (player.getSpeed() === 0) {
       if (player.sprite.key !== 'link-idle-front') {
         player.animationIdle();
-        socket.emit('playerStoped', { x: player.getX(), y: player.getY(), id: player.id });
+        crystalChase.network.playerStoped({ x: player.getX(), y: player.getY(), id: player.id });
       }
     }
   },
 
   render: function render() {},
 };
+
 document.addEventListener('DOMContentLoaded', () => {
   crystalChase.gameWrap.initGame();
-});
-
-socket.on('playerJoined', (data) => {
-  const newOpponent = crystalChase.gameWrap.createPlayer(data.x, data.y, data.id);
-  crystalChase.gameWrap.opponents[data.id] = newOpponent;
-  newOpponent.animationIdle();
-});
-
-socket.on('opponentMoved', (data) => {
-  const opponent = crystalChase.gameWrap.opponents[data.id];
-  if (opponent) {
-    let ang = crystalChase.gameWrap.game.physics.arcade
-      .angleToXY(opponent.sprite, data.x, data.y) * (180 / Math.PI);
-
-    if (ang < 0) {
-      ang = Math.abs(ang) + 180;
-    }
-    if (ang >= 225 && ang <= 315) {
-      opponent.animationWalkUp();
-    } else if (ang >= 45 && ang <= 135) {
-      opponent.animationWalkDown();
-    } else if (ang > 135 && ang < 225) {
-      opponent.animationWalkLeft();
-    } else if (ang < 45 || ang > 315) {
-      opponent.animationWalkRight();
-    }
-    crystalChase.gameWrap.game.physics.arcade
-      .moveToXY(opponent.sprite, data.x, data.y, 60, crystalChase.gameWrap.game.time.elapsedMS);
-    setTimeout(() => {
-      opponent.setX(data.x);
-      opponent.setY(data.y);
-    }, crystalChase.gameWrap.game.time.elapsedMS);
-  }
-});
-
-socket.on('opponentBeamed', (data) => {
-  const opponent = crystalChase.gameWrap.opponents[data.id];
-  if (opponent) {
-    opponent.setX(data.x);
-    opponent.setY(data.y);
-  }
-});
-
-socket.on('opponentStoped', (data) => {
-  const opponent = crystalChase.gameWrap.opponents[data.id];
-  if (opponent) {
-    opponent.animationIdle();
-  }
-});
-
-socket.on('playerLeft', (data) => {
-  const opponent = crystalChase.gameWrap.opponents[data.id];
-  if (opponent) {
-    crystalChase.gameWrap.opponents.splice(data.id, 1);
-    opponent.sprite.destroy();
-  }
-});
-
-socket.on('newCrystal', (data) => {
-  const newCrystalSprite = crystalChase.gameWrap.game.add.sprite(data.x, data.y, 'gem-green-spin');
-  crystalChase.gameWrap.crystal =
-    new crystalChase.models.Crystal(crystalChase.gameWrap.game, newCrystalSprite, data.id);
-});
-
-socket.on('newScores', (data) => {
-  crystalChase.scoreBoard.updateScoreboard(data);
-});
-
-socket.on('opponentGrabbedCrystal', () => {
-  crystalChase.gameWrap.soundChip.play();
-  if (crystalChase.gameWrap.crystal) {
-    crystalChase.gameWrap.crystal.sprite.destroy();
-  }
 });
