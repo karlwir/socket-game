@@ -5,14 +5,6 @@
     <title>Game</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-    <script src="/js/phaser.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/crystal-chase.js"></script>
-    <script src="/js/crystal-chase.models.js"></script>
-    <script src="/js/crystal-chase.models.Player.js"></script>
-    <script src="/js/crystal-chase.models.Crystal.js"></script>
-    <script src="/js/crystal-chase.utils.js"></script>
-    <script src="/js/main.js"></script>
   </head>
   <body>
     <div id="crystal-chase"></div>
@@ -26,13 +18,18 @@
           </tr>
         </thead>
         <tbody id="scores">
-          <tr>
-            <th scope="row">1</th>
-            <td>Mark</td>
-            <td>10</td>
-          </tr>
+
         </tbody>
       </table>
     </div>
+    <script src="/js/phaser.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/crystal-chase.js"></script>
+    <script src="/js/crystal-chase.models.js"></script>
+    <script src="/js/crystal-chase.models.Player.js"></script>
+    <script src="/js/crystal-chase.models.Crystal.js"></script>
+    <script src="/js/crystal-chase.score-board.js"></script>
+    <script src="/js/crystal-chase.utils.js"></script>
+    <script src="/js/crystal-chase.game-wrap.js"></script>
   </body>
 </html>

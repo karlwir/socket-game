@@ -1,5 +1,3 @@
-/* globals crystalChase */
-// eslint-disable-next-line no-unused-vars
 crystalChase.models.Crystal = class {
   constructor(game, sprite, id) {
     this.sprite = sprite;

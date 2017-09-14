@@ -1,11 +1,9 @@
-/* globals crystalChase */
-// eslint-disable-next-line no-unused-vars
-
 crystalChase.models.Player = class {
   constructor(game, sprite, id) {
     this.game = game;
     this.sprite = sprite;
     this.id = id;
+    this.inTheLead = false;
 
     this.sprite.scale.setTo(0.7);
     this.sprite.anchor.set(0.5);
@@ -13,10 +11,10 @@ crystalChase.models.Player = class {
     this.sprite.animations.add('walk');
     this.sprite.animations.add('idle');
     game.physics.enable(this.sprite, Phaser.Physics.ARCADE);
-    this.sprite.body.maxVelocity.x = defaultSpeed;
-    this.sprite.body.maxVelocity.y = defaultSpeed;
-    this.sprite.body.drag.x = defaultDrag;
-    this.sprite.body.drag.y = defaultDrag;
+    this.sprite.body.maxVelocity.x = crystalChase.gameWrap.defaultSpeed;
+    this.sprite.body.maxVelocity.y = crystalChase.gameWrap.defaultSpeed;
+    this.sprite.body.drag.x = crystalChase.gameWrap.defaultDrag;
+    this.sprite.body.drag.y = crystalChase.gameWrap.defaultDrag;
   }
 
   getX() { return this.sprite.x; }
@@ -33,47 +31,40 @@ crystalChase.models.Player = class {
   }
 
   moveLeft() {
-    this.sprite.body.acceleration.x -= defaultAcc;
+    this.sprite.body.acceleration.x -= crystalChase.gameWrap.defaultAcc;
     this.animationWalkLeft();
   }
 
   moveRight() {
-    this.sprite.body.acceleration.x += defaultAcc;
+    this.sprite.body.acceleration.x += crystalChase.gameWrap.defaultAcc;
     this.animationWalkRight();
   }
 
   moveUp() {
-    this.sprite.body.acceleration.y -= defaultAcc;
+    this.sprite.body.acceleration.y -= crystalChase.gameWrap.defaultAcc;
     this.animationWalkUp();
   }
 
   moveDown() {
-    this.sprite.body.acceleration.y += defaultAcc;
+    this.sprite.body.acceleration.y += crystalChase.gameWrap.defaultAcc;
     this.animationWalkDown();
   }
 
-  moveTo(x, y, ms) {
-    this.stopMoving();
-    if (this.getX() > x) {
-      this.moveLeft();
-    }
-  }
-
   handleOutOfBounds() {
-    if (this.getY() < -mapPadding) {
-      this.setY(mapHeight + mapPadding);
+    if (this.getY() < -crystalChase.gameWrap.mapPadding) {
+      this.setY(crystalChase.gameWrap.mapHeight + crystalChase.gameWrap.mapPadding);
       return true;
     }
-    if (this.getY() > mapHeight + mapPadding) {
-      this.setY(-mapPadding);
+    if (this.getY() > crystalChase.gameWrap.mapHeight + crystalChase.gameWrap.mapPadding) {
+      this.setY(-crystalChase.gameWrap.mapPadding);
       return true;
     }
-    if (this.getX() < -mapPadding) {
-      this.setX(mapWidth + mapPadding);
+    if (this.getX() < -crystalChase.gameWrap.mapPadding) {
+      this.setX(crystalChase.gameWrap.mapWidth + crystalChase.gameWrap.mapPadding);
       return true;
     }
-    if (this.getX() > mapWidth + mapPadding) {
-      this.setX(-mapPadding);
+    if (this.getX() > crystalChase.gameWrap.mapWidth + crystalChase.gameWrap.mapPadding) {
+      this.setX(-crystalChase.gameWrap.mapPadding);
       return true;
     }
     return false;
