@@ -15,11 +15,11 @@ const crystals = new Map();
 const scores = new Map();
 const socketMap = new Map();
 
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+function generateId() {
+  const number = Math.random();
+  number.toString(36);
+  const id = number.toString(36).substr(2, 9);
+  return id;
 }
 
 function randomNumber(max) {
@@ -27,7 +27,9 @@ function randomNumber(max) {
 }
 
 function createCrystal() {
-  const crystal = { x: randomNumber(mapWidth - 32) + 16, y: randomNumber(mapHeight - 32) + 16, id: uuidv4(), grabbed: false };
+  const x = randomNumber(mapWidth - 32) + 16;
+  const y = randomNumber(mapHeight - 32) + 16;
+  const crystal = { x, y, id: generateId(), grabbed: false };
   crystals.set(crystal.id, crystal);
   io.sockets.emit('newCrystal', crystal);
 }

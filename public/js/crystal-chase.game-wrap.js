@@ -68,7 +68,7 @@ crystalChase.gameWrap = {
     this.game.stage.disableVisibilityChange = true;
     const startX = crystalChase.utils.randomNumber(crystalChase.gameWrap.mapWidth);
     const startY = crystalChase.utils.randomNumber(crystalChase.gameWrap.mapHeight);
-    const startId = crystalChase.utils.uuidv4();
+    const startId = crystalChase.utils.generateId();
     crystalChase.gameWrap.player = crystalChase.gameWrap.createPlayer(startX, startY, startId);
     crystalChase.gameWrap.player.animationIdle();
     crystalChase.network.newPlayer({ x: startX, y: startY, id: startId });
