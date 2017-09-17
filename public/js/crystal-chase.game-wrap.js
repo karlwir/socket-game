@@ -1,9 +1,8 @@
 crystalChase.gameWrap = {
-  game: {},
-  player: {},
-  crystal: {},
-  cursors: {},
-  socket: {},
+  game: undefined,
+  player: undefined,
+  crystal: undefined,
+  cursors: undefined,
 
   soundDing: undefined,
   soundChip: undefined,
@@ -22,7 +21,6 @@ crystalChase.gameWrap = {
   mapPadding: 15,
 
   initGame: function initGame() {
-    crystalChase.network.connect();
     this.game = new Phaser.Game(512, 336, Phaser.AUTO, 'crystal-chase', { preload: this.preload, create: this.create, update: this.update, render: this.render });
   },
 
@@ -34,10 +32,20 @@ crystalChase.gameWrap = {
     crystalChase.gameWrap.crystal.sprite.destroy();
   },
 
-  createPlayer: function createPlayer(x, y, id) {
+  createPlayer: function createPlayer(x, y, id, name) {
     const newPlayerSprite = this.game.add.sprite(x, y, 'link-idle-front');
-    const newPlayer = new crystalChase.models.Player(this.game, newPlayerSprite, id);
+    const newPlayer = new crystalChase.models.Player(this.game, newPlayerSprite, id, name);
     return newPlayer;
+  },
+
+  joinGame: function joinGame(name) {
+    const x = crystalChase.utils.randomNumber(crystalChase.gameWrap.mapWidth);
+    const y = crystalChase.utils.randomNumber(crystalChase.gameWrap.mapHeight);
+    const id = crystalChase.utils.generateId();
+    crystalChase.gameWrap.player = crystalChase.gameWrap
+      .createPlayer(x, y, id, name);
+    crystalChase.gameWrap.player.animationIdle();
+    crystalChase.network.newPlayer({ x, y, id, name });
   },
 
   preload: function preload() {
@@ -66,12 +74,6 @@ crystalChase.gameWrap = {
     this.game.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
     this.game.background = this.game.add.sprite(0, 0, 'dungeon-background');
     this.game.stage.disableVisibilityChange = true;
-    const startX = crystalChase.utils.randomNumber(crystalChase.gameWrap.mapWidth);
-    const startY = crystalChase.utils.randomNumber(crystalChase.gameWrap.mapHeight);
-    const startId = crystalChase.utils.generateId();
-    crystalChase.gameWrap.player = crystalChase.gameWrap.createPlayer(startX, startY, startId);
-    crystalChase.gameWrap.player.animationIdle();
-    crystalChase.network.newPlayer({ x: startX, y: startY, id: startId });
 
     crystalChase.gameWrap.soundDing = this.game.add.audio('sound-ding');
     crystalChase.gameWrap.soundChip = this.game.add.audio('sound-chip');
@@ -80,6 +82,8 @@ crystalChase.gameWrap = {
     crystalChase.gameWrap.soundLostTheLead = this.game.add.audio('sound-lost-the-lead');
     crystalChase.gameWrap.soundBackgroundTune = this.game.add.audio('sound-background-tune');
     crystalChase.gameWrap.soundBackgroundTune.loopFull();
+
+    crystalChase.network.connect();
   },
 
   update: function update() {
@@ -87,38 +91,41 @@ crystalChase.gameWrap = {
     const crystal = crystalChase.gameWrap.crystal;
     const cursors = crystalChase.gameWrap.cursors;
 
-    if (crystal) {
-      this.game.physics.arcade
-        .collide(player.sprite, crystal.sprite, crystalChase.gameWrap.grabGem, null, this);
-    }
-    player.stopMoving();
-    if (cursors.left.isDown) {
-      player.moveLeft();
-    } else if (cursors.right.isDown) {
-      player.moveRight();
-    }
-    if (cursors.up.isDown) {
-      player.moveUp();
-    } else if (cursors.down.isDown) {
-      player.moveDown();
-    }
-    if (player.getSpeed() > 0) {
-      if (!player.soundSteps.isPlaying) {
-        player.soundSteps.fadeIn(500);
-        player.soundSteps.loopFull();
+    if (player) {
+      if (crystal) {
+        this.game.physics.arcade
+          .collide(player.sprite, crystal.sprite, crystalChase.gameWrap.grabGem, null, this);
       }
-      player.animationWalk();
-      if (player.handleOutOfBounds()) {
-        crystalChase.network.playerBeamed({ x: player.getX(), y: player.getY(), id: player.id });
-      } else {
-        crystalChase.network.playerMoved({ x: player.getX(), y: player.getY(), id: player.id });
+      player.stopMoving();
+      if (cursors.left.isDown) {
+        player.moveLeft();
+      } else if (cursors.right.isDown) {
+        player.moveRight();
       }
-    } else if (player.getSpeed() === 0) {
-      player.soundSteps.fadeOut(300);
-      if (player.sprite.key !== 'link-idle-front') {
-        player.animationIdle();
-        crystalChase.network.playerStoped({ x: player.getX(), y: player.getY(), id: player.id });
+      if (cursors.up.isDown) {
+        player.moveUp();
+      } else if (cursors.down.isDown) {
+        player.moveDown();
       }
+      if (player.getSpeed() > 0) {
+        if (!player.soundSteps.isPlaying) {
+          player.soundSteps.fadeIn(500);
+          player.soundSteps.loopFull();
+        }
+        player.animationWalk();
+        if (player.handleOutOfBounds()) {
+          crystalChase.network.playerBeamed(player.getData());
+        } else {
+          crystalChase.network.playerMoved(player.getData());
+        }
+      } else if (player.getSpeed() === 0) {
+        player.soundSteps.fadeOut(300);
+        if (player.sprite.key !== 'link-idle-front') {
+          player.animationIdle();
+          crystalChase.network.playerStoped(player.getData());
+        }
+      }
+      player.moveNameTag();
     }
   },
 
@@ -127,4 +134,5 @@ crystalChase.gameWrap = {
 
 document.addEventListener('DOMContentLoaded', () => {
   crystalChase.gameWrap.initGame();
+  crystalChase.ui.prepJoinBox();
 });

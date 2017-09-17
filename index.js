@@ -42,6 +42,14 @@ function getScores() {
 }
 
 io.on('connection', (socket) => {
+  socketMap.forEach((client) => {
+    socket.emit('playerJoined', client);
+  });
+  crystals.forEach((crystal) => {
+    if (!crystal.grabbed) {
+      socket.emit('newCrystal', crystal);
+    }
+  });
   socket.on('disconnect', () => {
     if (socketMap.get(socket)) {
       socket.broadcast.emit('playerLeft', socketMap.get(socket));
@@ -51,18 +59,10 @@ io.on('connection', (socket) => {
   });
 
   socket.on('newPlayer', (data) => {
-    socketMap.forEach((client) => {
-      socket.emit('playerJoined', client);
-    });
-    crystals.forEach((crystal) => {
-      if (!crystal.grabbed) {
-        socket.emit('newCrystal', crystal);
-      }
-    });
     socketMap.set(socket, data);
     scores.set(data.id, 0);
-    io.sockets.emit('newScores', getScores());
     socket.broadcast.emit('playerJoined', data);
+    io.sockets.emit('newScores', getScores());
   });
 
   socket.on('playerMoved', (data) => {

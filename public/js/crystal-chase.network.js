@@ -7,7 +7,7 @@ crystalChase.network = {
     // crystalChase.network.const socket = io.connect('http://172.26.32.232:8080');
 
     crystalChase.network.socket.on('playerJoined', (data) => {
-      const newOpponent = crystalChase.gameWrap.createPlayer(data.x, data.y, data.id);
+      const newOpponent = crystalChase.gameWrap.createPlayer(data.x, data.y, data.id, data.name);
       crystalChase.gameWrap.opponents[data.id] = newOpponent;
       newOpponent.animationIdle();
     });
@@ -18,13 +18,13 @@ crystalChase.network = {
         if (!opponent.soundSteps.isPlaying) {
           opponent.soundSteps.fadeIn(500);
           opponent.soundSteps.loopFull();
-        } else {
+        } else if (crystalChase.gameWrap.player) {
           const dist = crystalChase.gameWrap.game.physics.arcade
             .distanceBetween(opponent.sprite, crystalChase.gameWrap.player.sprite);
           const stepVolume = crystalChase.utils
-            .mapNumber(dist, 0, crystalChase.gameWrap.mapWidth, 1, 0.1);
+            .mapNumber(dist, 0, crystalChase.gameWrap.mapWidth, 0.1, 1);
 
-          opponent.soundSteps.fadeTo(50, stepVolume);
+          opponent.soundSteps.fadeTo(50, 1 - stepVolume);
         }
         let ang = crystalChase.gameWrap.game.physics.arcade
           .angleToXY(opponent.sprite, data.x, data.y) * (180 / Math.PI);
@@ -43,6 +43,7 @@ crystalChase.network = {
         }
         crystalChase.gameWrap.game.physics.arcade
           .moveToXY(opponent.sprite, data.x, data.y, 60, crystalChase.gameWrap.game.time.elapsedMS);
+        opponent.moveNameTag();
         setTimeout(() => {
           opponent.setX(data.x);
           opponent.setY(data.y);
@@ -71,6 +72,7 @@ crystalChase.network = {
       if (opponent) {
         crystalChase.gameWrap.opponents.splice(data.id, 1);
         opponent.sprite.destroy();
+        opponent.nameTag.destroy();
       }
     });
 

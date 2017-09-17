@@ -5,9 +5,21 @@
     <title>Game</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
   </head>
   <body>
-    <div id="crystal-chase"></div>
+    <div class="game-wrapper">
+      <div class="join-game-form" id="joinBox">
+        <div class="form-group">
+          <input type="text" class="form-control" id="nameInput" placeholder="Enter your name">
+        </div>
+
+        <div class="form-group">
+          <button type="submit" id="joinBtn" class="btn btn-primary">Join game</button>
+        </div>
+      </div>
+      <div id="crystal-chase"></div>
+    </div>
     <div class="scores-wrapper">
       <table class="table">
         <thead>
@@ -30,6 +42,7 @@
     <script src="/js/crystal-chase.models.Crystal.js"></script>
     <script src="/js/crystal-chase.score-board.js"></script>
     <script src="/js/crystal-chase.network.js"></script>
+    <script src="/js/crystal-chase.ui.js"></script>
     <script src="/js/crystal-chase.utils.js"></script>
     <script src="/js/crystal-chase.game-wrap.js"></script>
   </body>

@@ -1,9 +1,20 @@
 crystalChase.models.Player = class {
-  constructor(game, sprite, id) {
+  constructor(game, sprite, id, name) {
     this.game = game;
     this.sprite = sprite;
     this.id = id;
+    this.name = name;
     this.inTheLead = false;
+
+    this.nameTagStyle = {
+      font: '12px Courier',
+      fill: '#ffffff',
+      wordWrap: true,
+      wordWrapWidth: sprite.width,
+      align: 'center',
+    };
+    this.nameTag = game.add.text(this.getX(), this.getY() - 24, this.name, this.nameTagStyle);
+    this.nameTag.anchor.set(0.5);
 
     this.sprite.scale.setTo(0.75);
     this.sprite.anchor.set(0.5);
@@ -26,6 +37,8 @@ crystalChase.models.Player = class {
   setY(y) { this.sprite.y = y; }
 
   getSpeed() { return this.sprite.body.speed; }
+
+  getData() { return { x: this.getX(), y: this.getY(), id: this.id, name: this.name }; }
 
   stopMoving() {
     this.sprite.body.acceleration.x = 0;
@@ -70,6 +83,11 @@ crystalChase.models.Player = class {
       return true;
     }
     return false;
+  }
+
+  moveNameTag() {
+    this.nameTag.x = this.getX();
+    this.nameTag.y = this.getY() - 24;
   }
 
   animationWalk() {

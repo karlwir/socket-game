@@ -14,17 +14,25 @@ crystalChase.scoreBoard = {
       const tr = document.createElement('tr');
       const thRank = document.createElement('th');
       thRank.innerText = rank;
-      const tdName = document.createElement('td');
-      tdName.innerText = dataRow.key;
       const tdScore = document.createElement('td');
       tdScore.innerText = dataRow.value;
       lastScore = dataRow.value;
 
-      if (dataRow.key === player.id) {
+      const tdName = document.createElement('td');
+      if (player && dataRow.key === player.id) {
         tr.classList.add('current-player');
+        tdName.innerText = player.name;
+      } else {
+        const opponent = crystalChase.gameWrap.opponents[dataRow.key];
+        if (opponent) {
+          tdName.innerText = opponent.name;
+        }
       }
 
-      if (!player.inTheLead && rank === 1 && dataRow.key === player.id && dataRow.value !== 0) {
+      if (player && !player.inTheLead
+          && rank === 1
+          && dataRow.key === player.id
+          && dataRow.value !== 0) {
         crystalChase.gameWrap.soundTakenTheLead.play();
         player.inTheLead = true;
       } else if (rank === 2 && dataRow.key === player.id && player.inTheLead) {

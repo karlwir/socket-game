@@ -3,5 +3,12 @@ body {
 }
 
 .table tr.current-player {
-  background-color: #f3f3f3;
+  background-color: #fffdc2;
+}
+
+.join-game-form {
+    position: absolute;
+    background: rgba(255,255,255,.7);
+    padding: 1rem;
+    border-radius: .5rem;
 }

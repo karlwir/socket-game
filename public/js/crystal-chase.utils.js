@@ -11,7 +11,7 @@ crystalChase.utils = {
     return id;
   },
 
-  mapNumber: (number, inMin, inMax, outMin, outMax) => {
-    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-}
+  mapNumber: (number, inMin, inMax, outMin, outMax) =>
+    ((number - inMin) * (outMax - outMin)) / ((inMax - inMin) + outMin),
+
 };
