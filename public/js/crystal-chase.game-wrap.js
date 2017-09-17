@@ -21,7 +21,7 @@ crystalChase.gameWrap = {
   mapPadding: 15,
 
   initGame: function initGame() {
-    this.game = new Phaser.Game(512, 336, Phaser.AUTO, 'crystal-chase', { preload: this.preload, create: this.create, update: this.update, render: this.render });
+    this.game = new Phaser.Game(this.mapWidth, this.mapHeight, Phaser.AUTO, 'crystal-chase', { preload: this.preload, create: this.create, update: this.update, render: this.render });
   },
 
   grabGem: function grabGem() {
@@ -32,9 +32,10 @@ crystalChase.gameWrap = {
     crystalChase.gameWrap.crystal.sprite.destroy();
   },
 
-  createPlayer: function createPlayer(x, y, id, name) {
+  createPlayer: function createPlayer(x, y, id, name, isPlayer) {
     const newPlayerSprite = this.game.add.sprite(x, y, 'link-idle-front');
-    const newPlayer = new crystalChase.models.Player(this.game, newPlayerSprite, id, name);
+    const newPlayer = new crystalChase.models
+      .Player(this.game, newPlayerSprite, id, name, isPlayer);
     return newPlayer;
   },
 
@@ -43,7 +44,7 @@ crystalChase.gameWrap = {
     const y = crystalChase.utils.randomNumber(crystalChase.gameWrap.mapHeight);
     const id = crystalChase.utils.generateId();
     crystalChase.gameWrap.player = crystalChase.gameWrap
-      .createPlayer(x, y, id, name);
+      .createPlayer(x, y, id, name, true);
     crystalChase.gameWrap.player.animationIdle();
     crystalChase.network.newPlayer({ x, y, id, name });
   },
@@ -90,6 +91,7 @@ crystalChase.gameWrap = {
     const player = crystalChase.gameWrap.player;
     const crystal = crystalChase.gameWrap.crystal;
     const cursors = crystalChase.gameWrap.cursors;
+    const opponents = crystalChase.gameWrap.opponents;
 
     if (player) {
       if (crystal) {
@@ -126,6 +128,11 @@ crystalChase.gameWrap = {
         }
       }
       player.moveNameTag();
+
+      Object.keys(opponents).forEach((key) => {
+        this.game.physics.arcade
+          .collide(player.sprite, opponents[key].sprite, null, null, this);
+      });
     }
   },
 

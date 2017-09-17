@@ -1,9 +1,10 @@
 crystalChase.models.Player = class {
-  constructor(game, sprite, id, name) {
+  constructor(game, sprite, id, name, isPlayer) {
     this.game = game;
     this.sprite = sprite;
     this.id = id;
     this.name = name;
+    this.isPlayer = isPlayer;
     this.inTheLead = false;
 
     this.nameTagStyle = {
@@ -13,7 +14,15 @@ crystalChase.models.Player = class {
       wordWrapWidth: sprite.width,
       align: 'center',
     };
-    this.nameTag = game.add.text(this.getX(), this.getY() - 24, this.name, this.nameTagStyle);
+
+    if (isPlayer) {
+      this.nameTagStyle.font = '16px Courier';
+      this.nameTagStyle.fill = '#fffdc2';
+      this.nameTagStyle.strokeThickness = 1;
+      this.nameTag = game.add.text(this.getX(), this.getY() - 24, 'You', this.nameTagStyle);
+    } else {
+      this.nameTag = game.add.text(this.getX(), this.getY() - 24, this.name, this.nameTagStyle);
+    }
     this.nameTag.anchor.set(0.5);
 
     this.sprite.scale.setTo(0.75);
