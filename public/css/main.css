@@ -1,14 +1,15 @@
-body {
-
-}
-
 .table tr.current-player {
-  background-color: #fffdc2;
+  background-color: #DF691A;
 }
 
 .join-game-form {
     position: absolute;
     background: rgba(255,255,255,.7);
     padding: 1rem;
+    margin: 1rem;
     border-radius: .5rem;
+}
+
+#nameHelp {
+  display: none;
 }

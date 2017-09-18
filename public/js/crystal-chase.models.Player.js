@@ -11,18 +11,15 @@ crystalChase.models.Player = class {
       font: '12px Courier',
       fill: '#ffffff',
       wordWrap: true,
-      wordWrapWidth: sprite.width,
+      wordWrapWidth: this.sprite.width * 3,
       align: 'center',
     };
 
     if (isPlayer) {
       this.nameTagStyle.font = '16px Courier';
       this.nameTagStyle.fill = '#fffdc2';
-      this.nameTagStyle.strokeThickness = 1;
-      this.nameTag = game.add.text(this.getX(), this.getY() - 24, 'You', this.nameTagStyle);
-    } else {
-      this.nameTag = game.add.text(this.getX(), this.getY() - 24, this.name, this.nameTagStyle);
     }
+    this.nameTag = game.add.text(this.getX(), this.getY() - 24, this.name, this.nameTagStyle);
     this.nameTag.anchor.set(0.5);
 
     this.sprite.scale.setTo(0.75);

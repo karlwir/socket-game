@@ -2,7 +2,7 @@ crystalChase.network = {
   socket: {},
 
   connect: function connect() {
-    crystalChase.network.socket = io.connect('http://localhost:8080');
+    crystalChase.network.socket = io.connect('http://172.26.32.180:8080');
     // crystalChase.network.const socket = io.connect('https://intense-lowlands-35644.herokuapp.com/');
     // crystalChase.network.const socket = io.connect('http://172.26.32.232:8080');
 
